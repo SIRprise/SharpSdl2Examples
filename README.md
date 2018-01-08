@@ -1,7 +1,9 @@
 This is C# Examples (Tutorials) for SDL2.
 
 Project Website: https://github.com/expert4pro/SharpSdlExamples
+
 SDL Tutorials by Lazy Foo: http://lazyfoo.net/tutorials/SDL/index.php
+
 C# wrapper for SDL2: https://github.com/flibitijibibo/SDL2-CS
 
 License
