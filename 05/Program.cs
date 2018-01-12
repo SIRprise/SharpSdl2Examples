@@ -4,22 +4,20 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _01
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        private static IntPtr gScreenSurface = IntPtr.Zero;
-        private static IntPtr gStretchedSurface = IntPtr.Zero;
-        private static SDL.SDL_Rect stretchRect = new SDL.SDL_Rect();
+        private static IntPtr _ScreenSurface = IntPtr.Zero;
+        private static IntPtr _StretchedSurface = IntPtr.Zero;
 
         static int Main(string[] args)
         {
@@ -28,14 +26,14 @@ namespace _01
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            if (!init())
+            if (Init() == false)
             {
                 Console.WriteLine("Failed to initialize!");
             }
             else
             {
                 //Load media
-                if (!loadMedia())
+                if (LoadMedia() == false)
                 {
                     Console.WriteLine("Failed to load media!");
                 }
@@ -44,18 +42,18 @@ namespace _01
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
+                    SDL.SDL_Rect stretchRect;
                     stretchRect.x = 0;
                     stretchRect.y = 0;
                     stretchRect.w = SCREEN_WIDTH;
                     stretchRect.h = SCREEN_HEIGHT;
 
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -86,88 +84,81 @@ namespace _01
                                         break;
                                 }
                             }
-
-
                         }
 
-                        SDL.SDL_BlitScaled(gStretchedSurface, IntPtr.Zero, gScreenSurface, ref stretchRect);
+                        SDL.SDL_BlitScaled(_StretchedSurface, IntPtr.Zero, _ScreenSurface, ref stretchRect);
 
                         //Update the surface
-                        SDL.SDL_UpdateWindowSurface(gWindow);
+                        SDL.SDL_UpdateWindowSurface(_Window);
                     }
                 }
             }
 
             //Free resources and close SDL
-            close();
+            Close();
 
             //Console.ReadLine();
             return 0;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded image
-            SDL.SDL_FreeSurface(gStretchedSurface);
-            gStretchedSurface = IntPtr.Zero;
+            SDL.SDL_FreeSurface(_StretchedSurface);
+            _StretchedSurface = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL.SDL_Quit();
         }
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load stretching surface
-            gStretchedSurface = loadSurface("stretch.bmp");
-            if (gStretchedSurface == IntPtr.Zero)
+            _StretchedSurface = LoadSurface("stretch.bmp");
+            if (_StretchedSurface == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load stretching image!");
                 success = false;
             }
 
-
             return success;
         }
 
-        private static IntPtr loadSurface(string path)
+        private static IntPtr LoadSurface(string path)
         {
             //The final optimized image
-            IntPtr optimizedSurface = IntPtr.Zero;
-
+            var optimizedSurface = IntPtr.Zero;
+            
             //Load image at specified path
-            IntPtr loadedSurface = SDL.SDL_LoadBMP(path);
+            var loadedSurface = SDL.SDL_LoadBMP(path);
             if (loadedSurface == IntPtr.Zero)
             {
                 Console.WriteLine("Unable to load image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+                return optimizedSurface;
             }
-            else
-            {
-                var s = Marshal.PtrToStructure<SDL.SDL_Surface>(gScreenSurface);
 
-                //Convert surface to screen format
-                optimizedSurface = SDL.SDL_ConvertSurface(loadedSurface, s.format, 0);
-                if (optimizedSurface == IntPtr.Zero)
-                {
-                    Console.WriteLine("Unable to optimize image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-                }
+            var s = Marshal.PtrToStructure<SDL.SDL_Surface>(_ScreenSurface);
 
-                //Get rid of old loaded surface
-                SDL.SDL_FreeSurface(loadedSurface);
-            }
+            //Convert surface to screen format
+            optimizedSurface = SDL.SDL_ConvertSurface(loadedSurface, s.format, 0);
+            if (optimizedSurface == IntPtr.Zero)
+                Console.WriteLine("Unable to optimize image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+
+            //Get rid of old loaded surface
+            SDL.SDL_FreeSurface(loadedSurface);
 
             return optimizedSurface;
         }
 
 
-
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -181,9 +172,9 @@ namespace _01
             else
             {
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -191,25 +182,11 @@ namespace _01
                 else
                 {
                     //Get window surface
-                    gScreenSurface = SDL.SDL_GetWindowSurface(gWindow);
+                    _ScreenSurface = SDL.SDL_GetWindowSurface(_Window);
                 }
             }
 
             return success;
         }
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

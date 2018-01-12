@@ -7,8 +7,8 @@
     <ProjectGuid>{726AACAE-F425-4BD3-9F35-78E2D2CE3E18}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>_01</RootNamespace>
-    <AssemblyName>01</AssemblyName>
+    <RootNamespace>SdlExample</RootNamespace>
+    <AssemblyName>04</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>

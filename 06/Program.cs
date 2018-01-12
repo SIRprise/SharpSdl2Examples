@@ -4,24 +4,22 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _06
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        private static IntPtr gScreenSurface = IntPtr.Zero;
-        private static IntPtr gPNGSurface = IntPtr.Zero;
+        private static IntPtr _ScreenSurface = IntPtr.Zero;
+        private static IntPtr _PngSurface = IntPtr.Zero;
 
-
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -35,9 +33,9 @@ namespace _06
             else
             {
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -54,7 +52,7 @@ namespace _06
                     else
                     {
                         //Get window surface
-                        gScreenSurface = SDL.SDL_GetWindowSurface(gWindow);
+                        _ScreenSurface = SDL.SDL_GetWindowSurface(_Window);
                     }
                 }
             }
@@ -63,63 +61,59 @@ namespace _06
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load stretching surface
-            gPNGSurface = loadSurface("loaded.png");
-            if (gPNGSurface == IntPtr.Zero)
+            _PngSurface = LoadSurface("loaded.png");
+            if (_PngSurface == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load PNG image!");
                 success = false;
             }
 
-
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded image
-            SDL.SDL_FreeSurface(gPNGSurface);
-            gPNGSurface = IntPtr.Zero;
+            SDL.SDL_FreeSurface(_PngSurface);
+            _PngSurface = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
             SDL.SDL_Quit();
         }
 
-        private static IntPtr loadSurface(string path)
+        private static IntPtr LoadSurface(string path)
         {
             //The final optimized image
-            IntPtr optimizedSurface = IntPtr.Zero;
+            var optimizedSurface = IntPtr.Zero;
 
             //Load image at specified path
-            IntPtr loadedSurface = SDL_image.IMG_Load(path);
+            var loadedSurface = SDL_image.IMG_Load(path);
             if (loadedSurface == IntPtr.Zero)
             {
                 Console.WriteLine("Unable to load image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+                return optimizedSurface;
             }
-            else
-            {
-                var s = Marshal.PtrToStructure<SDL.SDL_Surface>(gScreenSurface);
 
-                //Convert surface to screen format
-                optimizedSurface = SDL.SDL_ConvertSurface(loadedSurface, s.format, 0);
-                if (optimizedSurface == IntPtr.Zero)
-                {
-                    Console.WriteLine("Unable to optimize image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-                }
+            var s = Marshal.PtrToStructure<SDL.SDL_Surface>(_ScreenSurface);
 
-                //Get rid of old loaded surface
-                SDL.SDL_FreeSurface(loadedSurface);
-            }
+            //Convert surface to screen format
+            optimizedSurface = SDL.SDL_ConvertSurface(loadedSurface, s.format, 0);
+            if (optimizedSurface == IntPtr.Zero)
+                Console.WriteLine("Unable to optimize image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+
+            //Get rid of old loaded surface
+            SDL.SDL_FreeSurface(loadedSurface);
 
             return optimizedSurface;
         }
@@ -131,14 +125,14 @@ namespace _06
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            if (!init())
+            if (Init() == false)
             {
                 Console.WriteLine("Failed to initialize!");
             }
             else
             {
                 //Load media
-                if (!loadMedia())
+                if (LoadMedia() == false)
                 {
                     Console.WriteLine("Failed to load media!");
                 }
@@ -147,56 +141,33 @@ namespace _06
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
                             //User requests quit
                             if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                            {
                                 quit = true;
-                            }
                         }
 
-                        SDL.SDL_BlitSurface(gPNGSurface, IntPtr.Zero, gScreenSurface, IntPtr.Zero);
+                        SDL.SDL_BlitSurface(_PngSurface, IntPtr.Zero, _ScreenSurface, IntPtr.Zero);
 
                         //Update the surface
-                        SDL.SDL_UpdateWindowSurface(gWindow);
+                        SDL.SDL_UpdateWindowSurface(_Window);
                     }
                 }
             }
 
-
             //Free resources and close SDL
-            close();
+            Close();
 
             //Console.ReadLine();
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

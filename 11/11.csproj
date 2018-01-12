@@ -7,7 +7,7 @@
     <ProjectGuid>{4E213CC0-A5B6-4035-B031-43AAF6CC58C2}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>_11</RootNamespace>
+    <RootNamespace>SdlExample</RootNamespace>
     <AssemblyName>11</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -44,6 +44,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="LTexture.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sdl\SDL2.cs" />

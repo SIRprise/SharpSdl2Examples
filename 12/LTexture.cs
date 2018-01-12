@@ -81,12 +81,19 @@ namespace SdlExample
         }
 
         //Renders texture at given point
-        public void Render(int x, int y, SDL.SDL_Rect? clip, double angle, SDL.SDL_Point? center, SDL.SDL_RendererFlip flip)
+        public void Render(int x, int y)
         {
             //Set rendering space and render to screen
-            SDL.SDL_Rect renderQuad = new SDL.SDL_Rect { x = x, y = y, w = _Width, h = _Height };
+            var renderQuad = new SDL.SDL_Rect { x = x, y = y, w = _Width, h = _Height };
+            SDL.SDL_RenderCopy(Program.Renderer, _Texture, IntPtr.Zero, ref renderQuad);
+        }
 
-            var myCenter = center ?? new SDL.SDL_Point();
+
+        //Renders texture at given point
+        public void Render(int x, int y, SDL.SDL_Rect? clip)
+        {
+            //Set rendering space and render to screen
+            var renderQuad = new SDL.SDL_Rect { x = x, y = y, w = _Width, h = _Height };
 
             //Set clip rendering dimensions
             if (clip != null)
@@ -96,11 +103,11 @@ namespace SdlExample
 
                 var myClip = clip.Value;
 
-                SDL.SDL_RenderCopyEx(Program.Renderer, _Texture, ref myClip, ref renderQuad, angle, ref myCenter, flip);
+                SDL.SDL_RenderCopy(Program.Renderer, _Texture, ref myClip, ref renderQuad);
                 return;
             }
 
-            SDL.SDL_RenderCopyEx(Program.Renderer, _Texture, IntPtr.Zero, ref renderQuad, angle, ref myCenter, flip);
+            SDL.SDL_RenderCopy(Program.Renderer, _Texture, IntPtr.Zero, ref renderQuad);
         }
 
         public void SetColor(byte red, byte green, byte blue)
@@ -109,32 +116,5 @@ namespace SdlExample
             SDL.SDL_SetTextureColorMod(_Texture, red, green, blue);
         }
 
-        public void SetBlendMode(SDL.SDL_BlendMode blending)
-        {
-            //Set blending function
-            SDL.SDL_SetTextureBlendMode(_Texture, blending);
-        }
-
-        public void SetAlpha(byte alpha)
-        {
-            //Modulate texture alpha
-            SDL.SDL_SetTextureAlphaMod(_Texture, alpha);
-        }
-
-        public int GetWidth()
-        {
-            return _Width;
-        }
-
-        public int GetHeight()
-        {
-            return _Height;
-        }
     }
 }
-
-
-
-
-
-

@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using SDL2;
 
-namespace _01
+namespace SdlExample
 {
     class Program
     {
@@ -14,10 +14,7 @@ namespace _01
         static int Main(string[] args)
         {
             //The window we'll be rendering to
-            IntPtr window = IntPtr.Zero;
-
-            //The surface contained by the window
-            SDL.SDL_Surface screenSurface;
+            var window = IntPtr.Zero;
 
             //Initialize SDL
             if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) < 0)
@@ -36,7 +33,9 @@ namespace _01
                 {
                     //Get window surface
                     var myscreenSurface = SDL.SDL_GetWindowSurface(window);
-                    screenSurface = Marshal.PtrToStructure<SDL.SDL_Surface>(myscreenSurface);
+
+                    //The surface contained by the window
+                    var screenSurface = Marshal.PtrToStructure<SDL.SDL_Surface>(myscreenSurface);
 
                     //Fill the surface white
                     SDL.SDL_FillRect(myscreenSurface, IntPtr.Zero, SDL.SDL_MapRGB(screenSurface.format, 0xFF, 0xFF, 0xFF));

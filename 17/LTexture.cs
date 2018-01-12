@@ -103,8 +103,7 @@ namespace _17
         public void render(int x, int y, SDL.SDL_Rect? clip = null, double angle = 0, SDL.SDL_Point? center = null, SDL.SDL_RendererFlip flip = SDL.SDL_RendererFlip.SDL_FLIP_NONE)
         {
             //Set rendering space and render to screen
-            SDL.SDL_Rect renderQuad = new SDL.SDL_Rect { x = x, y = y, w = mWidth, h = mHeight };
-
+            var renderQuad = new SDL.SDL_Rect { x = x, y = y, w = mWidth, h = mHeight };
             var myCenter = center ?? new SDL.SDL_Point();
 
             //Set clip rendering dimensions

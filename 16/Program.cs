@@ -3,29 +3,27 @@ using System.Globalization;
 using System.Threading;
 using SDL2;
 
-namespace _16
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Globally used font
-        public static IntPtr gFont = IntPtr.Zero;
+        public static IntPtr Font = IntPtr.Zero;
 
         //Rendered texture
-        private static LTexture gTextTexture = new LTexture();
+        private static readonly LTexture _TextTexture = new LTexture();
 
-
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -45,9 +43,9 @@ namespace _16
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -56,8 +54,8 @@ namespace _16
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -65,7 +63,7 @@ namespace _16
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -89,14 +87,14 @@ namespace _16
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Open the font
-            gFont = SDL_ttf.TTF_OpenFont("lazy.ttf", 28);
-            if (gFont == IntPtr.Zero)
+            Font = SDL_ttf.TTF_OpenFont("lazy.ttf", 28);
+            if (Font == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load lazy font! SDL_ttf Error: {0}", SDL.SDL_GetError());
                 success = false;
@@ -105,7 +103,7 @@ namespace _16
             {
                 //Render text
                 var textColor = new SDL.SDL_Color();
-                if (!gTextTexture.loadFromRenderedText("The quick brown fox jumps over the lazy dog", textColor))
+                if (!_TextTexture.LoadFromRenderedText("The quick brown fox jumps over the lazy dog", textColor))
                 {
                     Console.WriteLine("Failed to render text texture!");
                     success = false;
@@ -115,20 +113,20 @@ namespace _16
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gTextTexture.free();
+            _TextTexture.Free();
 
             //Free global font
-            SDL_ttf.TTF_CloseFont(gFont);
-            gFont = IntPtr.Zero;
+            SDL_ttf.TTF_CloseFont(Font);
+            Font = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_ttf.TTF_Quit();
@@ -143,7 +141,7 @@ namespace _16
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -151,7 +149,7 @@ namespace _16
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -161,63 +159,41 @@ namespace _16
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
                             //User requests quit
                             if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                            {
                                 quit = true;
-                            }
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render current frame
-                        gTextTexture.render((SCREEN_WIDTH - gTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gTextTexture.getHeight()) / 2);
+                        _TextTexture.Render((SCREEN_WIDTH - _TextTexture.GetWidth()) / 2, (SCREEN_HEIGHT - _TextTexture.GetHeight()) / 2);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

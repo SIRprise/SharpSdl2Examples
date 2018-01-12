@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using SDL2;
 
-namespace _01
+namespace SdlExample
 {
     class Program
     {
@@ -12,26 +11,27 @@ namespace _01
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        private static IntPtr gScreenSurface = IntPtr.Zero;
-        private static IntPtr gCurrentSurface = IntPtr.Zero; 
+        private static IntPtr _ScreenSurface = IntPtr.Zero;
+
+        private static IntPtr _CurrentSurface = IntPtr.Zero;
 
         //The images that correspond to a keypress
-        private static IntPtr[] gKeyPressSurfaces = new IntPtr[6];
+        private static readonly IntPtr[] _KeyPressSurfaces = new IntPtr[6];
 
         static int Main(string[] args)
         {
             //Start up SDL and create window
-            if (!init())
+            if (Init() == false)
             {
                 Console.WriteLine("Failed to initialize!");
             }
             else
             {
                 //Load media
-                if (!loadMedia())
+                if (LoadMedia() == false)
                 {
                     Console.WriteLine("Failed to load media!");
                 }
@@ -40,15 +40,15 @@ namespace _01
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //Set default current surface
-                    gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT];
+                    _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT];
 
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -57,7 +57,6 @@ namespace _01
                             {
                                 quit = true;
                             }
-                            
                             //User presses a key
                             else if (e.type == SDL.SDL_EventType.SDL_KEYDOWN)
                             {
@@ -65,101 +64,101 @@ namespace _01
                                 switch (e.key.keysym.sym)
                                 {
                                     case SDL.SDL_Keycode.SDLK_UP:
-                                        gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP];
+                                        _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP];
                                         break;
 
                                     case SDL.SDL_Keycode.SDLK_DOWN:
-                                        gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN];
+                                        _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN];
                                         break;
 
                                     case SDL.SDL_Keycode.SDLK_LEFT:
-                                        gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT];
+                                        _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT];
                                         break;
 
                                     case SDL.SDL_Keycode.SDLK_RIGHT:
-                                        gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT];
+                                        _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT];
                                         break;
 
                                     default:
-                                        gCurrentSurface = gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT];
+                                        _CurrentSurface = _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT];
                                         break;
                                 }
                             }
                         }
 
                         //Apply the current image
-                        SDL.SDL_BlitSurface(gCurrentSurface, IntPtr.Zero, gScreenSurface, IntPtr.Zero);
+                        SDL.SDL_BlitSurface(_CurrentSurface, IntPtr.Zero, _ScreenSurface, IntPtr.Zero);
 
                         //Update the surface
-                        SDL.SDL_UpdateWindowSurface(gWindow);
+                        SDL.SDL_UpdateWindowSurface(_Window);
                     }
                 }
             }
 
             //Free resources and close SDL
-            close();
+            Close();
 
             //Console.ReadLine();
             return 0;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Deallocate surfaces
-            for (int i = 0; i < gKeyPressSurfaces.Length; ++i)
+            for (int i = 0; i < _KeyPressSurfaces.Length; ++i)
             {
-                SDL.SDL_FreeSurface(gKeyPressSurfaces[i]);
-                gKeyPressSurfaces[i] = IntPtr.Zero;
+                SDL.SDL_FreeSurface(_KeyPressSurfaces[i]);
+                _KeyPressSurfaces[i] = IntPtr.Zero;
             }
 
             //Destroy window
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL.SDL_Quit();
         }
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load default surface
-            gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT] = loadSurface("press.bmp");
-            if (gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT] == IntPtr.Zero)
+            _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT] = LoadSurface("press.bmp");
+            if (_KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DEFAULT] == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load default image!");
                 success = false;
             }
 
             //Load up surface
-            gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP] = loadSurface("up.bmp");
-            if (gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP] == IntPtr.Zero)
+            _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP] = LoadSurface("up.bmp");
+            if (_KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_UP] == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load up image!");
                 success = false;
             }
 
             //Load down surface
-            gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN] = loadSurface("down.bmp");
-            if (gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN] == IntPtr.Zero)
+            _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN] = LoadSurface("down.bmp");
+            if (_KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_DOWN] == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load down image!");
                 success = false;
             }
 
             //Load left surface
-            gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT] = loadSurface("left.bmp");
-            if (gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT] == IntPtr.Zero)
+            _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT] = LoadSurface("left.bmp");
+            if (_KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_LEFT] == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load left image!");
                 success = false;
             }
 
             //Load right surface
-            gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT] = loadSurface("right.bmp");
-            if (gKeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT] == IntPtr.Zero)
+            _KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT] = LoadSurface("right.bmp");
+            if (_KeyPressSurfaces[(int)KeyPressSurfaces.KEY_PRESS_SURFACE_RIGHT] == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load right image!");
                 success = false;
@@ -168,22 +167,17 @@ namespace _01
             return success;
         }
 
-        private static IntPtr loadSurface(string path)
+        private static IntPtr LoadSurface(string path)
         {
             //Load image at specified path
-            IntPtr loadedSurface = SDL.SDL_LoadBMP(path);
+            var loadedSurface = SDL.SDL_LoadBMP(path);
             if (loadedSurface == IntPtr.Zero)
-            {
                 Console.WriteLine("Unable to load image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-            }
-
 
             return loadedSurface;
         }
 
-
-
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -197,9 +191,9 @@ namespace _01
             else
             {
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -207,13 +201,12 @@ namespace _01
                 else
                 {
                     //Get window surface
-                    gScreenSurface = SDL.SDL_GetWindowSurface(gWindow);
+                    _ScreenSurface = SDL.SDL_GetWindowSurface(_Window);
                 }
             }
 
             return success;
         }
-
 
         //Key press surfaces constants
         public enum KeyPressSurfaces
@@ -224,8 +217,6 @@ namespace _01
             KEY_PRESS_SURFACE_LEFT,
             KEY_PRESS_SURFACE_RIGHT,
             KEY_PRESS_SURFACE_TOTAL
-        };
-
+        }
     }
-
 }

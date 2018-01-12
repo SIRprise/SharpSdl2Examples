@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Runtime.InteropServices;
 using SDL2;
 
-namespace _01
+namespace SdlExample
 {
     class Program
     {
@@ -12,67 +11,69 @@ namespace _01
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        private static IntPtr gScreenSurface = IntPtr.Zero;
+        private static IntPtr _ScreenSurface = IntPtr.Zero;
 
         //The image we will load and show on the screen
-        private static IntPtr gHelloWorld = IntPtr.Zero;
+        private static IntPtr _HelloWorld = IntPtr.Zero;
 
         static int Main(string[] args)
         {
             //Start up SDL and create window
-            if (!init())
+            if (Init() == false)
             {
                 Console.WriteLine("Failed to initialize!");
             }
             else
             {
                 //Load media
-                if (!loadMedia())
+                if (LoadMedia() == false)
                 {
                     Console.WriteLine("Failed to load media!");
                 }
                 else
                 {
                     //Apply the image
-                    SDL.SDL_BlitSurface(gHelloWorld, IntPtr.Zero, gScreenSurface, IntPtr.Zero);
+                    SDL.SDL_BlitSurface(_HelloWorld, IntPtr.Zero, _ScreenSurface, IntPtr.Zero);
+                    
                     //Update the surface
-                    SDL.SDL_UpdateWindowSurface(gWindow);
+                    SDL.SDL_UpdateWindowSurface(_Window);
+                    
                     //Wait two seconds
-                    SDL.SDL_Delay(3000);
+                    SDL.SDL_Delay(2000);
                 }
             }
 
             //Free resources and close SDL
-            close();
+            Close();
 
             return 0;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Deallocate surface
-            SDL.SDL_FreeSurface(gHelloWorld);
-            gHelloWorld = IntPtr.Zero;
+            SDL.SDL_FreeSurface(_HelloWorld);
+            _HelloWorld = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL.SDL_Quit();
         }
 
-        static bool loadMedia()
+        private static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load splash image
-            gHelloWorld = SDL.SDL_LoadBMP("hello_world.bmp");
-            if (gHelloWorld == IntPtr.Zero)
+            _HelloWorld = SDL.SDL_LoadBMP("hello_world.bmp");
+            if (_HelloWorld == IntPtr.Zero)
             {
                 Console.WriteLine("Unable to load image {0}! SDL Error: {1}", "hello_world.bmp", SDL.SDL_GetError());
                 success = false;
@@ -81,7 +82,7 @@ namespace _01
             return success;
         }
 
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -95,9 +96,9 @@ namespace _01
             else
             {
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED, 
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -105,7 +106,7 @@ namespace _01
                 else
                 {
                     //Get window surface
-                    gScreenSurface = SDL.SDL_GetWindowSurface(gWindow);
+                    _ScreenSurface = SDL.SDL_GetWindowSurface(_Window);
                 }
             }
 

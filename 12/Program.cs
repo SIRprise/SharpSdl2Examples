@@ -1,153 +1,26 @@
 ﻿using System;
 using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _12
+namespace SdlExample
 {
     class Program
     {
-        //Texture wrapper class
-        class LTexture
-        {
-
-            //Initializes variables
-            public LTexture()
-            {
-                //Initialize
-                mTexture = IntPtr.Zero;
-                mWidth = 0;
-                mHeight = 0;
-            }
-
-            //Deallocates memory
-            ~LTexture()
-            {
-                free();
-            }
-
-            //Loads image at specified path
-            public bool loadFromFile(string path)
-            {
-                //Get rid of preexisting texture
-                free();
-
-                //The final texture
-                IntPtr newTexture = IntPtr.Zero;
-
-                //Load image at specified path
-                IntPtr loadedSurface = SDL_image.IMG_Load(path);
-                if (loadedSurface == IntPtr.Zero)
-                {
-                    Console.WriteLine("Unable to load image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-                }
-                else
-                {
-                    var s = Marshal.PtrToStructure<SDL.SDL_Surface>(loadedSurface);
-
-                    //Color key image
-                    SDL.SDL_SetColorKey(loadedSurface, (int)SDL.SDL_bool.SDL_TRUE, SDL.SDL_MapRGB(s.format, 0, 0xFF, 0xFF));
-
-                    //Create texture from surface pixels
-                    newTexture = SDL.SDL_CreateTextureFromSurface(gRenderer, loadedSurface);
-                    if (newTexture == IntPtr.Zero)
-                    {
-                        Console.WriteLine("Unable to create texture from {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-                    }
-                    else
-                    {
-                        //Get image dimensions
-                        mWidth = s.w;
-                        mHeight = s.h;
-                    }
-
-                    //Get rid of old loaded surface
-                    SDL.SDL_FreeSurface(loadedSurface);
-                }
-
-                //Return success
-                mTexture = newTexture;
-                return mTexture != IntPtr.Zero;
-            }
-
-            //Deallocates texture
-            public void free()
-            {
-                //Free texture if it exists
-                if (mTexture != IntPtr.Zero)
-                {
-                    SDL.SDL_DestroyTexture(mTexture);
-                    mTexture = IntPtr.Zero;
-                    mWidth = 0;
-                    mHeight = 0;
-                }
-            }
-
-            public void setColor(byte red, byte green, byte blue)
-            {
-                //Modulate texture
-                SDL.SDL_SetTextureColorMod(mTexture, red, green, blue);
-            }
-
-            //Renders texture at given point
-            public void render(int x, int y, SDL.SDL_Rect? clip = null)
-            {
-                //Set rendering space and render to screen
-                SDL.SDL_Rect renderQuad = new SDL.SDL_Rect { x = x, y = y, w = mWidth, h = mHeight };
-
-                //Set clip rendering dimensions
-                if (clip != null)
-                {
-                    renderQuad.w = clip.Value.w;
-                    renderQuad.h = clip.Value.h;
-
-                    var myClip = clip.Value;
-
-                    SDL.SDL_RenderCopy(gRenderer, mTexture, ref myClip, ref renderQuad);
-                    return;
-                }
-
-                SDL.SDL_RenderCopy(gRenderer, mTexture, IntPtr.Zero, ref renderQuad);
-            }
-
-            //Gets image dimensions
-            public int getWidth()
-            {
-                return mWidth;
-            }
-
-            public int getHeight()
-            {
-                return mHeight;
-            }
-
-
-            //The actual hardware texture
-            private IntPtr mTexture;
-
-            //Image dimensions
-            private int mWidth;
-
-            private int mHeight;
-        };
-
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        private static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Scene texture
-        private static LTexture gModulatedTexture = new LTexture();
+        private static readonly LTexture _ModulatedTexture = new LTexture();
 
-
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -167,9 +40,9 @@ namespace _12
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -177,8 +50,8 @@ namespace _12
                 else
                 {
                     //Create renderer for window
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -186,7 +59,7 @@ namespace _12
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -203,13 +76,13 @@ namespace _12
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load texture
-            if (!gModulatedTexture.loadFromFile("colors.png"))
+            if (_ModulatedTexture.LoadFromFile("colors.png") == false)
             {
                 Console.WriteLine("Failed to load sprite sheet texture!");
                 success = false;
@@ -218,16 +91,16 @@ namespace _12
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gModulatedTexture.free();
+            _ModulatedTexture.Free();
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
@@ -241,14 +114,14 @@ namespace _12
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            if (!init())
+            if (Init() == false)
             {
                 Console.WriteLine("Failed to initialize!");
             }
             else
             {
                 //Load media
-                if (!loadMedia())
+                if (LoadMedia() == false)
                 {
                     Console.WriteLine("Failed to load media!");
                 }
@@ -256,9 +129,6 @@ namespace _12
                 {
                     //Main loop flag
                     bool quit = false;
-
-                    //Event handler
-                    SDL.SDL_Event e;
 
                     //Modulation components
                     byte r = 255;
@@ -268,6 +138,9 @@ namespace _12
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -315,45 +188,25 @@ namespace _12
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Modulate and render texture
-                        gModulatedTexture.setColor(r, g, b);
-                        gModulatedTexture.render(0, 0);
+                        _ModulatedTexture.SetColor(r, g, b);
+                        _ModulatedTexture.Render(0, 0);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             //Console.ReadLine();
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }
