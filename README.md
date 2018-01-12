@@ -1,4 +1,4 @@
-This is SDL2 tutorials are written using C# from original C/C++ SDL Tutorials by Lazy Foo and using SDL2# (C# Wrapper for SDL2)
+The SDL2 tutorials are written using C# from original C/C++ SDL Tutorials by Lazy Foo and using SDL2# (C# Wrapper for SDL2)
 
 Very thank Lazy Foo for great SDL2 tutorials!
 
