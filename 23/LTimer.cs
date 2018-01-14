@@ -1,127 +1,122 @@
-﻿using System;
-using System.Runtime.InteropServices;
-using SDL2;
+﻿using SDL2;
 
-namespace _23
+namespace SdlExample
 {
     //Texture wrapper class
-    class LTimer
+    public class LTimer
     {
+        //The clock time when the timer started
+        private uint _StartTicks;
+
+        //The ticks stored when the timer was paused
+        private uint _PausedTicks;
+
+        //The timer status
+        private bool _Paused;
+        private bool _Started;
 
         //Initializes variables
         public LTimer()
         {
             //Initialize the variables
-            mStartTicks = 0;
-            mPausedTicks = 0;
+            _StartTicks = 0;
+            _PausedTicks = 0;
 
-            mPaused = false;
-            mStarted = false;
+            _Paused = false;
+            _Started = false;
         }
 
-        public void start()
+        public void Start()
         {
             //Start the timer
-            mStarted = true;
+            _Started = true;
 
             //Unpause the timer
-            mPaused = false;
+            _Paused = false;
 
             //Get the current clock time
-            mStartTicks = SDL.SDL_GetTicks();
-            mPausedTicks = 0;
+            _StartTicks = SDL.SDL_GetTicks();
+            _PausedTicks = 0;
         }
 
-        public void stop()
+        public void Stop()
         {
             //Stop the timer
-            mStarted = false;
+            _Started = false;
 
             //Unpause the timer
-            mPaused = false;
+            _Paused = false;
 
             //Clear tick variables
-            mStartTicks = 0;
-            mPausedTicks = 0;
+            _StartTicks = 0;
+            _PausedTicks = 0;
         }
 
-        public void pause()
+        public void Pause()
         {
             //If the timer is running and isn't already paused
-            if (mStarted && !mPaused)
+            if (_Started && !_Paused)
             {
                 //Pause the timer
-                mPaused = true;
+                _Paused = true;
 
                 //Calculate the paused ticks
-                mPausedTicks = SDL.SDL_GetTicks() - mStartTicks;
-                mStartTicks = 0;
+                _PausedTicks = SDL.SDL_GetTicks() - _StartTicks;
+                _StartTicks = 0;
             }
         }
 
-        public void unpause()
+        public void Unpause()
         {
             //If the timer is running and paused
-            if (mStarted && mPaused)
+            if (_Started && _Paused)
             {
                 //Unpause the timer
-                mPaused = false;
+                _Paused = false;
 
                 //Reset the starting ticks
-                mStartTicks = SDL.SDL_GetTicks() - mPausedTicks;
+                _StartTicks = SDL.SDL_GetTicks() - _PausedTicks;
 
                 //Reset the paused ticks
-                mPausedTicks = 0;
+                _PausedTicks = 0;
             }
         }
 
 
-        public uint getTicks()
+        public uint GetTicks()
         {
             //The actual timer time
             uint time = 0;
 
             //If the timer is running
-            if (mStarted)
+            if (_Started)
             {
                 //If the timer is paused
-                if (mPaused)
+                if (_Paused)
                 {
                     //Return the number of ticks when the timer was paused
-                    time = mPausedTicks;
+                    time = _PausedTicks;
                 }
                 else
                 {
                     //Return the current time minus the start time
-                    time = SDL.SDL_GetTicks() - mStartTicks;
+                    time = SDL.SDL_GetTicks() - _StartTicks;
                 }
             }
 
             return time;
         }
 
-        public bool isStarted()
+        public bool IsStarted()
         {
             //Timer is running and paused or unpaused
-            return mStarted;
+            return _Started;
         }
 
-        public bool isPaused()
+        public bool IsPaused()
         {
             //Timer is running and paused
-            return mPaused && mStarted;
+            return _Paused && _Started;
         }
-
-
-        //The clock time when the timer started
-        private uint mStartTicks;
-
-        //The ticks stored when the timer was paused
-        private uint mPausedTicks;
-
-        //The timer status
-        private bool mPaused;
-        private bool mStarted;
-    };
-
+    }
 }

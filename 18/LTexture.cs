@@ -2,107 +2,89 @@
 using System.Runtime.InteropServices;
 using SDL2;
 
-namespace _18
+namespace SdlExample
 {
     //Texture wrapper class
-    class LTexture
+    public class LTexture
     {
+        //The actual hardware texture
+        private IntPtr _Texture;
 
-        //Initializes variables
+        //Image dimensions
+        private int _Width;
+        private int _Height;
+
         public LTexture()
         {
             //Initialize
-            mTexture = IntPtr.Zero;
-            mWidth = 0;
-            mHeight = 0;
+            _Texture = IntPtr.Zero;
+            _Width = 0;
+            _Height = 0;
         }
 
         //Deallocates memory
         ~LTexture()
         {
-            free();
+            Free();
         }
 
         //Loads image at specified path
-        public bool loadFromFile(string path)
+        public bool LoadFromFile(string path)
         {
             //Get rid of preexisting texture
-            free();
-
-            //The final texture
-            IntPtr newTexture = IntPtr.Zero;
+            Free();
 
             //Load image at specified path
-            IntPtr loadedSurface = SDL_image.IMG_Load(path);
+            var loadedSurface = SDL_image.IMG_Load(path);
             if (loadedSurface == IntPtr.Zero)
             {
                 Console.WriteLine("Unable to load image {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+                return false;
             }
-            else
+
+            var s = Marshal.PtrToStructure<SDL.SDL_Surface>(loadedSurface);
+
+            //Color key image
+            SDL.SDL_SetColorKey(loadedSurface, (int)SDL.SDL_bool.SDL_TRUE, SDL.SDL_MapRGB(s.format, 0, 0xFF, 0xFF));
+
+            //Create texture from surface pixels
+            var newTexture = SDL.SDL_CreateTextureFromSurface(Program.Renderer, loadedSurface);
+            if (newTexture == IntPtr.Zero)
             {
-                var s = Marshal.PtrToStructure<SDL.SDL_Surface>(loadedSurface);
-
-                //Color key image
-                SDL.SDL_SetColorKey(loadedSurface, (int)SDL.SDL_bool.SDL_TRUE, SDL.SDL_MapRGB(s.format, 0, 0xFF, 0xFF));
-
-                //Create texture from surface pixels
-                newTexture = SDL.SDL_CreateTextureFromSurface(Program.gRenderer, loadedSurface);
-                if (newTexture == IntPtr.Zero)
-                {
-                    Console.WriteLine("Unable to create texture from {0}! SDL Error: {1}", path, SDL.SDL_GetError());
-                }
-                else
-                {
-                    //Get image dimensions
-                    mWidth = s.w;
-                    mHeight = s.h;
-                }
-
-                //Get rid of old loaded surface
-                SDL.SDL_FreeSurface(loadedSurface);
+                Console.WriteLine("Unable to create texture from {0}! SDL Error: {1}", path, SDL.SDL_GetError());
+                return false;
             }
+
+            //Get image dimensions
+            _Width = s.w;
+            _Height = s.h;
+
+            //Get rid of old loaded surface
+            SDL.SDL_FreeSurface(loadedSurface);
 
             //Return success
-            mTexture = newTexture;
-            return mTexture != IntPtr.Zero;
+            _Texture = newTexture;
+            return true;
         }
 
         //Deallocates texture
-        public void free()
+        public void Free()
         {
             //Free texture if it exists
-            if (mTexture != IntPtr.Zero)
-            {
-                SDL.SDL_DestroyTexture(mTexture);
-                mTexture = IntPtr.Zero;
-                mWidth = 0;
-                mHeight = 0;
-            }
-        }
+            if (_Texture == IntPtr.Zero)
+                return;
 
-        public void setColor(byte red, byte green, byte blue)
-        {
-            //Modulate texture
-            SDL.SDL_SetTextureColorMod(mTexture, red, green, blue);
-        }
-
-        public void setBlendMode(SDL.SDL_BlendMode blending)
-        {
-            //Set blending function
-            SDL.SDL_SetTextureBlendMode(mTexture, blending);
-        }
-
-        public void setAlpha(byte alpha)
-        {
-            //Modulate texture alpha
-            SDL.SDL_SetTextureAlphaMod(mTexture, alpha);
+            SDL.SDL_DestroyTexture(_Texture);
+            _Texture = IntPtr.Zero;
+            _Width = 0;
+            _Height = 0;
         }
 
         //Renders texture at given point
-        public void render(int x, int y, SDL.SDL_Rect? clip = null, double angle = 0, SDL.SDL_Point? center = null, SDL.SDL_RendererFlip flip = SDL.SDL_RendererFlip.SDL_FLIP_NONE)
+        public void Render(int x, int y, SDL.SDL_Rect? clip = null, double angle = 0, SDL.SDL_Point? center = null, SDL.SDL_RendererFlip flip = SDL.SDL_RendererFlip.SDL_FLIP_NONE)
         {
             //Set rendering space and render to screen
-            SDL.SDL_Rect renderQuad = new SDL.SDL_Rect { x = x, y = y, w = mWidth, h = mHeight };
+            SDL.SDL_Rect renderQuad = new SDL.SDL_Rect { x = x, y = y, w = _Width, h = _Height };
 
             var myCenter = center ?? new SDL.SDL_Point();
 
@@ -113,33 +95,46 @@ namespace _18
                 renderQuad.h = clip.Value.h;
 
                 var myClip = clip.Value;
-                
-                SDL.SDL_RenderCopyEx(Program.gRenderer, mTexture, ref myClip, ref renderQuad, angle, ref myCenter, flip);
+
+                SDL.SDL_RenderCopyEx(Program.Renderer, _Texture, ref myClip, ref renderQuad, angle, ref myCenter, flip);
                 return;
             }
 
-            SDL.SDL_RenderCopyEx(Program.gRenderer, mTexture, IntPtr.Zero, ref renderQuad, angle, ref myCenter, flip);
+            SDL.SDL_RenderCopyEx(Program.Renderer, _Texture, IntPtr.Zero, ref renderQuad, angle, ref myCenter, flip);
         }
 
-        //Gets image dimensions
-        public int getWidth()
+        public void SetColor(byte red, byte green, byte blue)
         {
-            return mWidth;
+            //Modulate texture
+            SDL.SDL_SetTextureColorMod(_Texture, red, green, blue);
         }
 
-        public int getHeight()
+        public void SetBlendMode(SDL.SDL_BlendMode blending)
         {
-            return mHeight;
+            //Set blending function
+            SDL.SDL_SetTextureBlendMode(_Texture, blending);
         }
 
+        public void SetAlpha(byte alpha)
+        {
+            //Modulate texture alpha
+            SDL.SDL_SetTextureAlphaMod(_Texture, alpha);
+        }
 
-        //The actual hardware texture
-        private IntPtr mTexture;
+        public int GetWidth()
+        {
+            return _Width;
+        }
 
-        //Image dimensions
-        private int mWidth;
-
-        private int mHeight;
-    };
-
+        public int GetHeight()
+        {
+            return _Height;
+        }
+    }
 }
+
+
+
+
+
+

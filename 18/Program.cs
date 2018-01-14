@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _18
+namespace SdlExample
 {
     class Program
     {
@@ -15,19 +15,20 @@ namespace _18
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Scene textures
-        private static LTexture gPressTexture = new LTexture();
-        private static LTexture gUpTexture = new LTexture();
-        private static LTexture gDownTexture = new LTexture();
-        private static LTexture gLeftTexture = new LTexture();
-        private static LTexture gRightTexture = new LTexture();
+        private static readonly LTexture _PressTexture = new LTexture();
 
-        private static bool init()
+        private static readonly LTexture _UpTexture = new LTexture();
+        private static readonly LTexture _DownTexture = new LTexture();
+        private static readonly LTexture _LeftTexture = new LTexture();
+        private static readonly LTexture _RightTexture = new LTexture();
+
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -47,9 +48,9 @@ namespace _18
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -58,8 +59,8 @@ namespace _18
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -67,7 +68,7 @@ namespace _18
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -84,41 +85,41 @@ namespace _18
         }
 
 
-        static bool loadMedia()
+        private static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load press texture
-            if (!gPressTexture.loadFromFile("press.png"))
+            if (!_PressTexture.LoadFromFile("press.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
             }
 
             //Load up texture
-            if (!gUpTexture.loadFromFile("up.png"))
+            if (!_UpTexture.LoadFromFile("up.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
             }
 
             //Load down texture
-            if (!gDownTexture.loadFromFile("down.png"))
+            if (!_DownTexture.LoadFromFile("down.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
             }
 
             //Load left texture
-            if (!gLeftTexture.loadFromFile("left.png"))
+            if (!_LeftTexture.LoadFromFile("left.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
             }
 
             //Load right texture
-            if (!gRightTexture.loadFromFile("right.png"))
+            if (!_RightTexture.LoadFromFile("right.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
@@ -127,20 +128,21 @@ namespace _18
             return success;
         }
 
-        private static void close()
+
+        private static void Close()
         {
             //Free loaded images
-            gPressTexture.free();
-            gUpTexture.free();
-            gDownTexture.free();
-            gLeftTexture.free();
-            gRightTexture.free();
+            _PressTexture.Free();
+            _UpTexture.Free();
+            _DownTexture.Free();
+            _LeftTexture.Free();
+            _RightTexture.Free();
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
@@ -154,7 +156,7 @@ namespace _18
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -162,7 +164,7 @@ namespace _18
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -172,23 +174,18 @@ namespace _18
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
-                    //Current rendered texture
-                    LTexture currentTexture;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
                             //User requests quit
                             if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                            {
                                 quit = true;
-                            }
                         }
 
                         //Set texture based on current keystate
@@ -214,68 +211,51 @@ namespace _18
                             Console.WriteLine();
                         }
 
+                        //Current rendered texture
+                        LTexture currentTexture;
+
                         if (currentKeyStates[(int)SDL.SDL_Scancode.SDL_SCANCODE_UP] != 0)
                         {
-                            currentTexture = gUpTexture;
+                            currentTexture = _UpTexture;
                         }
                         else if (currentKeyStates[(int)SDL.SDL_Scancode.SDL_SCANCODE_DOWN] != 0)
                         {
-                            currentTexture = gDownTexture;
+                            currentTexture = _DownTexture;
                         }
                         else if (currentKeyStates[(int)SDL.SDL_Scancode.SDL_SCANCODE_LEFT] != 0)
                         {
-                            currentTexture = gLeftTexture;
+                            currentTexture = _LeftTexture;
                         }
                         else if (currentKeyStates[(int)SDL.SDL_Scancode.SDL_SCANCODE_RIGHT] != 0)
                         {
-                            currentTexture = gRightTexture;
+                            currentTexture = _RightTexture;
                         }
                         else
                         {
-                            currentTexture = gPressTexture;
+                            currentTexture = _PressTexture;
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render current texture
-                        currentTexture.render(0, 0);
+                        currentTexture.Render(0, 0);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

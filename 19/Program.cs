@@ -1,36 +1,33 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _19
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //Analog joystick dead zone
         private const int JOYSTICK_DEAD_ZONE = 8000;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Scene textures
-        private static LTexture gArrowTexture = new LTexture();
+        private static readonly LTexture _ArrowTexture = new LTexture();
         
         //Game Controller 1 handler
-        private static IntPtr gGameController = IntPtr.Zero;
+        private static IntPtr _GameController = IntPtr.Zero;
 
         
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -57,17 +54,15 @@ namespace _19
                 else
                 {
                     //Load joystick
-                    gGameController = SDL.SDL_JoystickOpen(0);
-                    if (gGameController == IntPtr.Zero)
-                    {
+                    _GameController = SDL.SDL_JoystickOpen(0);
+                    if (_GameController == IntPtr.Zero)
                         Console.WriteLine("Warning: Unable to open game controller! SDL Error: {0}", SDL.SDL_GetError());
-                    }
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -76,8 +71,8 @@ namespace _19
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -85,7 +80,7 @@ namespace _19
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -102,13 +97,13 @@ namespace _19
         }
 
 
-        static bool loadMedia()
+        private static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load press texture
-            if (!gArrowTexture.loadFromFile("arrow.png"))
+            if (!_ArrowTexture.LoadFromFile("arrow.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
@@ -117,20 +112,20 @@ namespace _19
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gArrowTexture.free();
+            _ArrowTexture.Free();
             
             //Close game controller
-            SDL.SDL_JoystickClose(gGameController);
-            gGameController = IntPtr.Zero;
+            SDL.SDL_JoystickClose(_GameController);
+            _GameController = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
@@ -144,7 +139,7 @@ namespace _19
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -152,7 +147,7 @@ namespace _19
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -162,9 +157,6 @@ namespace _19
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //Normalized direction
                     int xDir = 0;
                     int yDir = 0;
@@ -172,6 +164,9 @@ namespace _19
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -227,8 +222,8 @@ namespace _19
 
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Calculate angle
                         double joystickAngle = Math.Atan2(yDir, xDir) * (180.0 / Math.PI);
@@ -240,42 +235,22 @@ namespace _19
                         }
 
                         //Render joystick 8 way angle
-                        gArrowTexture.render((SCREEN_WIDTH - gArrowTexture.getWidth()) / 2, (SCREEN_HEIGHT - gArrowTexture.getHeight()) / 2, null, joystickAngle);
+                        _ArrowTexture.Render((SCREEN_WIDTH - _ArrowTexture.GetWidth()) / 2, (SCREEN_HEIGHT - _ArrowTexture.GetHeight()) / 2, null, joystickAngle);
                         
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

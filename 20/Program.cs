@@ -1,34 +1,31 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _20
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //Analog joystick dead zone
-        private const int JOYSTICK_DEAD_ZONE = 8000;
+        //private const int JOYSTICK_DEAD_ZONE = 8000;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Scene textures
-        private static LTexture gSplashTexture = new LTexture();
+        private static readonly LTexture _SplashTexture = new LTexture();
         
         //Game Controller 1 handler
-        private static IntPtr gGameController = IntPtr.Zero;
-        private static IntPtr gControllerHaptic = IntPtr.Zero;
+        private static IntPtr _GameController = IntPtr.Zero;
+        private static IntPtr _ControllerHaptic = IntPtr.Zero;
 
 
         private static bool init()
@@ -58,23 +55,23 @@ namespace _20
                 else
                 {
                     //Load joystick
-                    gGameController = SDL.SDL_JoystickOpen(0);
-                    if (gGameController == IntPtr.Zero)
+                    _GameController = SDL.SDL_JoystickOpen(0);
+                    if (_GameController == IntPtr.Zero)
                     {
                         Console.WriteLine("Warning: Unable to open game controller! SDL Error: {0}", SDL.SDL_GetError());
                     }
                     else
                     {
                         //Get controller haptic device
-                        gControllerHaptic = SDL.SDL_HapticOpenFromJoystick(gGameController);
-                        if (gControllerHaptic == IntPtr.Zero)
+                        _ControllerHaptic = SDL.SDL_HapticOpenFromJoystick(_GameController);
+                        if (_ControllerHaptic == IntPtr.Zero)
                         {
                             Console.WriteLine("Warning: Controller does not support haptics! SDL Error: {0}", SDL.SDL_GetError());
                         }
                         else
                         {
                             //Get initialize rumble
-                            if (SDL.SDL_HapticRumbleInit(gControllerHaptic) < 0)
+                            if (SDL.SDL_HapticRumbleInit(_ControllerHaptic) < 0)
                             {
                                 Console.WriteLine("Warning: Unable to initialize rumble! SDL Error: {0}", SDL.SDL_GetError());
                             }
@@ -83,9 +80,9 @@ namespace _20
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -94,8 +91,8 @@ namespace _20
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -103,7 +100,7 @@ namespace _20
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -120,13 +117,13 @@ namespace _20
         }
 
 
-        static bool loadMedia()
+        private static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load press texture
-            if (!gSplashTexture.loadFromFile("splash.png"))
+            if (!_SplashTexture.LoadFromFile("splash.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
@@ -135,20 +132,20 @@ namespace _20
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gSplashTexture.free();
+            _SplashTexture.Free();
             
             //Close game controller
-            SDL.SDL_JoystickClose(gGameController);
-            gGameController = IntPtr.Zero;
+            SDL.SDL_JoystickClose(_GameController);
+            _GameController = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
@@ -170,7 +167,7 @@ namespace _20
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -180,12 +177,12 @@ namespace _20
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -198,55 +195,33 @@ namespace _20
                             else if (e.type == SDL.SDL_EventType.SDL_JOYBUTTONDOWN)
                             {
                                 //Play rumble at 75% strenght for 500 milliseconds
-                                if (SDL.SDL_HapticRumblePlay(gControllerHaptic, 0.75f, 500) != 0)
-                                {
+                                if (SDL.SDL_HapticRumblePlay(_ControllerHaptic, 0.75f, 500) != 0)
                                     Console.WriteLine("Warning: Unable to play rumble! {0}", SDL.SDL_GetError());
-                                }
                             }
                         }
 
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render splash image
-                        gSplashTexture.render(0, 0);
+                        _SplashTexture.Render(0, 0);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

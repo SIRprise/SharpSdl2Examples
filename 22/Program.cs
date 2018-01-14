@@ -3,7 +3,7 @@ using System.Globalization;
 using System.Threading;
 using SDL2;
 
-namespace _22
+namespace SdlExample
 {
     class Program
     {
@@ -13,20 +13,21 @@ namespace _22
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Globally used font
-        public static IntPtr gFont = IntPtr.Zero;
+        public static IntPtr Font = IntPtr.Zero;
 
         //Scene textures
-        private static LTexture gTimeTextTexture = new LTexture();
-        private static LTexture gPromptTextTexture = new LTexture();
+        private static readonly LTexture _TimeTextTexture = new LTexture();
+
+        private static readonly LTexture _PromptTextTexture = new LTexture();
 
 
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -46,9 +47,9 @@ namespace _22
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -57,8 +58,8 @@ namespace _22
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -66,7 +67,7 @@ namespace _22
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -90,14 +91,14 @@ namespace _22
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Open the font
-            gFont = SDL_ttf.TTF_OpenFont("lazy.ttf", 28);
-            if (gFont == IntPtr.Zero)
+            Font = SDL_ttf.TTF_OpenFont("lazy.ttf", 28);
+            if (Font == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load lazy font! SDL_ttf Error: {0}", SDL.SDL_GetError());
                 success = false;
@@ -105,10 +106,10 @@ namespace _22
             else
             {
                 //Set text color as black
-                SDL.SDL_Color textColor = new SDL.SDL_Color { a = 255 };
+                var textColor = new SDL.SDL_Color { a = 255 };
 
                 //Load prompt texture
-                if (!gPromptTextTexture.loadFromRenderedText("Press Enter to Reset Start Time.", textColor))
+                if (!_PromptTextTexture.LoadFromRenderedText("Press Enter to Reset Start Time.", textColor))
                 {
                     Console.WriteLine("Unable to render prompt texture!");
                     success = false;
@@ -118,21 +119,21 @@ namespace _22
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gTimeTextTexture.free();
-            gPromptTextTexture.free();
+            _TimeTextTexture.Free();
+            _PromptTextTexture.Free();
 
             //Free global font
-            SDL_ttf.TTF_CloseFont(gFont);
-            gFont = IntPtr.Zero;
+            SDL_ttf.TTF_CloseFont(Font);
+            Font = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_ttf.TTF_Quit();
@@ -147,7 +148,7 @@ namespace _22
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -155,7 +156,7 @@ namespace _22
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -165,21 +166,18 @@ namespace _22
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //Set text color as black
-                    SDL.SDL_Color textColor = new SDL.SDL_Color{ a = 255 };
+                    var textColor = new SDL.SDL_Color { a = 255 };
 
                     //Current time start time
                     uint startTime = 0;
 
-                    //In memory text stream
-                    string timeText;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -196,57 +194,36 @@ namespace _22
                         }
 
                         //Set text to be rendered
-                        timeText = "";
-                        timeText += "Milliseconds since start time " + (SDL.SDL_GetTicks() - startTime);
+                        var timeText = "Milliseconds since start time " + (SDL.SDL_GetTicks() - startTime);
 
                         //Render text
-                        if (!gTimeTextTexture.loadFromRenderedText(timeText, textColor))
+                        if (!_TimeTextTexture.LoadFromRenderedText(timeText, textColor))
                         {
                             Console.WriteLine("Unable to render time texture!");
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render textures
-                        gPromptTextTexture.render((SCREEN_WIDTH - gPromptTextTexture.getWidth()) / 2, 0);
-                        gTimeTextTexture.render((SCREEN_WIDTH - gPromptTextTexture.getWidth()) / 2, (SCREEN_HEIGHT - gPromptTextTexture.getHeight()) / 2);
+                        _PromptTextTexture.Render((SCREEN_WIDTH - _PromptTextTexture.GetWidth()) / 2, 0);
+                        _TimeTextTexture.Render((SCREEN_WIDTH - _PromptTextTexture.GetWidth()) / 2, (SCREEN_HEIGHT - _PromptTextTexture.GetHeight()) / 2);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }

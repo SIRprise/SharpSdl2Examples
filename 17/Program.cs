@@ -3,12 +3,13 @@ using System.Globalization;
 using System.Threading;
 using SDL2;
 
-namespace _17
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
+
         private const int SCREEN_HEIGHT = 480;
 
         //Button constants
@@ -19,20 +20,21 @@ namespace _17
 
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Rendered texture
-        public static LTexture gButtonSpriteSheetTexture = new LTexture();
+        public static LTexture ButtonSpriteSheetTexture = new LTexture();
+
         //Mouse button sprites
-        public static SDL.SDL_Rect[] gSpriteClips = new SDL.SDL_Rect[4];
+        public static SDL.SDL_Rect[] SpriteClips = new SDL.SDL_Rect[4];
 
         //Buttons objects
-        private static LButton[] gButtons = new LButton[TOTAL_BUTTONS];
+        private static readonly LButton[] _Buttons = new LButton[TOTAL_BUTTONS];
 
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -52,9 +54,9 @@ namespace _17
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -63,8 +65,8 @@ namespace _17
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -72,7 +74,7 @@ namespace _17
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -89,13 +91,13 @@ namespace _17
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
             //Load sprites
-            if (!gButtonSpriteSheetTexture.loadFromFile("button.png"))
+            if (!ButtonSpriteSheetTexture.LoadFromFile("button.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
@@ -105,36 +107,36 @@ namespace _17
                 //Set sprites
                 for (int i = 0; i < 4; ++i)
                 {
-                    gSpriteClips[i].x = 0;
-                    gSpriteClips[i].y = i * 200;
-                    gSpriteClips[i].w = BUTTON_WIDTH;
-                    gSpriteClips[i].h = BUTTON_HEIGHT;
+                    SpriteClips[i].x = 0;
+                    SpriteClips[i].y = i * 200;
+                    SpriteClips[i].w = BUTTON_WIDTH;
+                    SpriteClips[i].h = BUTTON_HEIGHT;
                 }
 
                 //Set buttons in corners
-                gButtons[0] = new LButton();
-                gButtons[0].setPosition(0, 0);
-                gButtons[1] = new LButton();
-                gButtons[1].setPosition(SCREEN_WIDTH - BUTTON_WIDTH, 0);
-                gButtons[2] = new LButton();
-                gButtons[2].setPosition(0, SCREEN_HEIGHT - BUTTON_HEIGHT);
-                gButtons[3] = new LButton();
-                gButtons[3].setPosition(SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT);
+                _Buttons[0] = new LButton();
+                _Buttons[0].SetPosition(0, 0);
+                _Buttons[1] = new LButton();
+                _Buttons[1].SetPosition(SCREEN_WIDTH - BUTTON_WIDTH, 0);
+                _Buttons[2] = new LButton();
+                _Buttons[2].SetPosition(0, SCREEN_HEIGHT - BUTTON_HEIGHT);
+                _Buttons[3] = new LButton();
+                _Buttons[3].SetPosition(SCREEN_WIDTH - BUTTON_WIDTH, SCREEN_HEIGHT - BUTTON_HEIGHT);
             }
 
             return success;
         }
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gButtonSpriteSheetTexture.free();
+            ButtonSpriteSheetTexture.Free();
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_image.IMG_Quit();
@@ -148,7 +150,7 @@ namespace _17
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -156,7 +158,7 @@ namespace _17
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -166,81 +168,50 @@ namespace _17
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
                             //User requests quit
                             if (e.type == SDL.SDL_EventType.SDL_QUIT)
-                            {
                                 quit = true;
-                            }
 
                             //Handle button events
                             for (int i = 0; i < TOTAL_BUTTONS; ++i)
                             {
-                                gButtons[i].handleEvent(e);
+                                _Buttons[i].HandleEvent(e);
                             }
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render buttons
                         for (int i = 0; i < TOTAL_BUTTONS; ++i)
                         {
-                            gButtons[i].render();
+                            _Buttons[i].Render();
                         }
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
-
-        public enum LButtonSprite
-        {
-            BUTTON_SPRITE_MOUSE_OUT = 0,
-            BUTTON_SPRITE_MOUSE_OVER_MOTION = 1,
-            BUTTON_SPRITE_MOUSE_DOWN = 2,
-            BUTTON_SPRITE_MOUSE_UP = 3,
-            BUTTON_SPRITE_TOTAL = 4
-        };
     }
-
 }

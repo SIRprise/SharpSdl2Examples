@@ -7,7 +7,7 @@
     <ProjectGuid>{97187F6C-82D9-4A20-B018-F47566576834}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>_18</RootNamespace>
+    <RootNamespace>SdlExample</RootNamespace>
     <AssemblyName>18</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>

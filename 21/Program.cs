@@ -1,39 +1,36 @@
 ﻿using System;
 using System.Globalization;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using SDL2;
 
-namespace _21
+namespace SdlExample
 {
     class Program
     {
         //Screen dimension constants
         private const int SCREEN_WIDTH = 640;
-
         private const int SCREEN_HEIGHT = 480;
 
         //The window we'll be rendering to
-        private static IntPtr gWindow = IntPtr.Zero;
+        private static IntPtr _Window = IntPtr.Zero;
 
         //The surface contained by the window
-        public static IntPtr gRenderer = IntPtr.Zero;
+        public static IntPtr Renderer = IntPtr.Zero;
 
         //Scene texture
-        private static LTexture gPromptTexture = new LTexture();
+        private static readonly LTexture _PromptTexture = new LTexture();
 
         //The music that will be played
-        private static IntPtr gMusic = IntPtr.Zero;
+        private static IntPtr _Music = IntPtr.Zero;
 
         //The sound effects that will be used
-        private static IntPtr gScratch = IntPtr.Zero;
-        private static IntPtr gHigh = IntPtr.Zero;
-        private static IntPtr gMedium = IntPtr.Zero;
-        private static IntPtr gLow = IntPtr.Zero;
+        private static IntPtr _Scratch = IntPtr.Zero;
+        private static IntPtr _High = IntPtr.Zero;
+        private static IntPtr _Medium = IntPtr.Zero;
+        private static IntPtr _Low = IntPtr.Zero;
 
 
-        private static bool init()
+        private static bool Init()
         {
             //Initialization flag
             bool success = true;
@@ -53,9 +50,9 @@ namespace _21
                 }
 
                 //Create window
-                gWindow = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
+                _Window = SDL.SDL_CreateWindow("SDL Tutorial", SDL.SDL_WINDOWPOS_UNDEFINED, SDL.SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT, SDL.SDL_WindowFlags.SDL_WINDOW_SHOWN);
-                if (gWindow == IntPtr.Zero)
+                if (_Window == IntPtr.Zero)
                 {
                     Console.WriteLine("Window could not be created! SDL_Error: {0}", SDL.SDL_GetError());
                     success = false;
@@ -64,8 +61,8 @@ namespace _21
                 {
                     //Create vsynced renderer for window
                     var renderFlags = SDL.SDL_RendererFlags.SDL_RENDERER_ACCELERATED | SDL.SDL_RendererFlags.SDL_RENDERER_PRESENTVSYNC;
-                    gRenderer = SDL.SDL_CreateRenderer(gWindow, -1, renderFlags);
-                    if (gRenderer == IntPtr.Zero)
+                    Renderer = SDL.SDL_CreateRenderer(_Window, -1, renderFlags);
+                    if (Renderer == IntPtr.Zero)
                     {
                         Console.WriteLine("Renderer could not be created! SDL Error: {0}", SDL.SDL_GetError());
                         success = false;
@@ -73,7 +70,7 @@ namespace _21
                     else
                     {
                         //Initialize renderer color
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
 
                         //Initialize PNG loading
                         var imgFlags = SDL_image.IMG_InitFlags.IMG_INIT_PNG;
@@ -97,49 +94,49 @@ namespace _21
         }
 
 
-        static bool loadMedia()
+        static bool LoadMedia()
         {
             //Loading success flag
             bool success = true;
 
-            if (!gPromptTexture.loadFromFile("prompt.png"))
+            if (!_PromptTexture.LoadFromFile("prompt.png"))
             {
                 Console.WriteLine("Failed to load!");
                 success = false;
             }
 
             //Load music
-            gMusic = SDL_mixer.Mix_LoadMUS("beat.wav");
-            if (gMusic == IntPtr.Zero)
+            _Music = SDL_mixer.Mix_LoadMUS("beat.wav");
+            if (_Music == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load! {0}", SDL.SDL_GetError());
                 success = false;
             }
 
             //Load sound effects
-            gScratch = SDL_mixer.Mix_LoadWAV("scratch.wav");
-            if (gScratch == IntPtr.Zero)
+            _Scratch = SDL_mixer.Mix_LoadWAV("scratch.wav");
+            if (_Scratch == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load! {0}", SDL.SDL_GetError());
                 success = false;
             }
 
-            gHigh = SDL_mixer.Mix_LoadWAV("high.wav");
-            if (gHigh == IntPtr.Zero)
+            _High = SDL_mixer.Mix_LoadWAV("high.wav");
+            if (_High == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load! {0}", SDL.SDL_GetError());
                 success = false;
             }
 
-            gMedium = SDL_mixer.Mix_LoadWAV("medium.wav");
-            if (gMedium == IntPtr.Zero)
+            _Medium = SDL_mixer.Mix_LoadWAV("medium.wav");
+            if (_Medium == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load! {0}", SDL.SDL_GetError());
                 success = false;
             }
 
-            gLow = SDL_mixer.Mix_LoadWAV("low.wav");
-            if (gLow == IntPtr.Zero)
+            _Low = SDL_mixer.Mix_LoadWAV("low.wav");
+            if (_Low == IntPtr.Zero)
             {
                 Console.WriteLine("Failed to load! {0}", SDL.SDL_GetError());
                 success = false;
@@ -149,30 +146,30 @@ namespace _21
         }
 
 
-        private static void close()
+        private static void Close()
         {
             //Free loaded images
-            gPromptTexture.free();
+            _PromptTexture.Free();
 
             //Free the sound effects
-            SDL_mixer.Mix_FreeChunk(gScratch);
-            SDL_mixer.Mix_FreeChunk(gHigh);
-            SDL_mixer.Mix_FreeChunk(gMedium);
-            SDL_mixer.Mix_FreeChunk(gLow);
-            gScratch = IntPtr.Zero;
-            gHigh = IntPtr.Zero;
-            gMedium = IntPtr.Zero;
-            gLow = IntPtr.Zero;
+            SDL_mixer.Mix_FreeChunk(_Scratch);
+            SDL_mixer.Mix_FreeChunk(_High);
+            SDL_mixer.Mix_FreeChunk(_Medium);
+            SDL_mixer.Mix_FreeChunk(_Low);
+            _Scratch = IntPtr.Zero;
+            _High = IntPtr.Zero;
+            _Medium = IntPtr.Zero;
+            _Low = IntPtr.Zero;
 
             //Free the music
-            SDL_mixer.Mix_FreeMusic(gMusic);
-            gMusic = IntPtr.Zero;
+            SDL_mixer.Mix_FreeMusic(_Music);
+            _Music = IntPtr.Zero;
 
             //Destroy window
-            SDL.SDL_DestroyRenderer(gRenderer);
-            SDL.SDL_DestroyWindow(gWindow);
-            gWindow = IntPtr.Zero;
-            gRenderer = IntPtr.Zero;
+            SDL.SDL_DestroyRenderer(Renderer);
+            SDL.SDL_DestroyWindow(_Window);
+            _Window = IntPtr.Zero;
+            Renderer = IntPtr.Zero;
 
             //Quit SDL subsystems
             SDL_mixer.Mix_Quit();
@@ -187,7 +184,7 @@ namespace _21
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
 
             //Start up SDL and create window
-            var success = init();
+            var success = Init();
             if (success == false)
             {
                 Console.WriteLine("Failed to initialize!");
@@ -195,7 +192,7 @@ namespace _21
             else
             {
                 //Load media
-                success = loadMedia();
+                success = LoadMedia();
                 if (success == false)
                 {
                     Console.WriteLine("Failed to load media!");
@@ -205,12 +202,12 @@ namespace _21
                     //Main loop flag
                     bool quit = false;
 
-                    //Event handler
-                    SDL.SDL_Event e;
-
                     //While application is running
                     while (!quit)
                     {
+                        //Event handler
+                        SDL.SDL_Event e;
+
                         //Handle events on queue
                         while (SDL.SDL_PollEvent(out e) != 0)
                         {
@@ -226,22 +223,22 @@ namespace _21
                                 {
                                     //Play high sound effect
                                     case SDL.SDL_Keycode.SDLK_1:
-                                        SDL_mixer.Mix_PlayChannel(-1, gHigh, 0);
+                                        SDL_mixer.Mix_PlayChannel(-1, _High, 0);
                                         break;
 
                                     //Play medium sound effect
                                     case SDL.SDL_Keycode.SDLK_2:
-                                        SDL_mixer.Mix_PlayChannel(-1, gMedium, 0);
+                                        SDL_mixer.Mix_PlayChannel(-1, _Medium, 0);
                                         break;
 
                                     //Play low sound effect
                                     case SDL.SDL_Keycode.SDLK_3:
-                                        SDL_mixer.Mix_PlayChannel(-1, gLow, 0);
+                                        SDL_mixer.Mix_PlayChannel(-1, _Low, 0);
                                         break;
 
                                     //Play scratch sound effect
                                     case SDL.SDL_Keycode.SDLK_4:
-                                        SDL_mixer.Mix_PlayChannel(-1, gScratch, 0);
+                                        SDL_mixer.Mix_PlayChannel(-1, _Scratch, 0);
                                         break;
 
                                     case SDL.SDL_Keycode.SDLK_9:
@@ -249,7 +246,7 @@ namespace _21
                                         if (SDL_mixer.Mix_PlayingMusic() == 0)
                                         {
                                             //Play the music
-                                            SDL_mixer.Mix_PlayMusic(gMusic, -1);
+                                            SDL_mixer.Mix_PlayMusic(_Music, -1);
                                         }
                                         //If music is being played
                                         else
@@ -278,46 +275,26 @@ namespace _21
                         }
 
                         //Clear screen
-                        SDL.SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
-                        SDL.SDL_RenderClear(gRenderer);
+                        SDL.SDL_SetRenderDrawColor(Renderer, 0xFF, 0xFF, 0xFF, 0xFF);
+                        SDL.SDL_RenderClear(Renderer);
 
                         //Render prompt
-                        gPromptTexture.render(0, 0);
+                        _PromptTexture.Render(0, 0);
 
                         //Update screen
-                        SDL.SDL_RenderPresent(gRenderer);
+                        SDL.SDL_RenderPresent(Renderer);
                     }
                 }
             }
 
 
             //Free resources and close SDL
-            close();
+            Close();
 
             if (success == false)
                 Console.ReadLine();
 
             return 0;
         }
-
-
-
-
-
-
-
-
-        //Key press surfaces constants
-        public enum KeyPressSurfaces
-        {
-            KEY_PRESS_SURFACE_DEFAULT,
-            KEY_PRESS_SURFACE_UP,
-            KEY_PRESS_SURFACE_DOWN,
-            KEY_PRESS_SURFACE_LEFT,
-            KEY_PRESS_SURFACE_RIGHT,
-            KEY_PRESS_SURFACE_TOTAL
-        };
-
     }
-
 }
